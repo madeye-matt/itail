@@ -88,18 +88,23 @@ an sh compatible shell command like 'grep ERROR'")
   :type 'boolean
   :group 'itail)
 
+(defcustom itail-open-fn
+  'pop-to-buffer
+  "Function to use when opening tail."
+  :type 'function
+  :group 'itail)
+
 (define-minor-mode itail-mode
   "Tail a local or remote (using tramp) file with
 nice bindings for interacting with a tail like
 clearing and filtering
-
 \\{itail-keymap}"
   nil
   " itail"
   :keymap itail-keymap)
 
 ;;;###autoload
-(defun itail (file &optional current-window)
+(defun itail (file)
   "Tail file FILE in itail mode.  Supports remote tailing through tramp "
   (interactive "ftail file: ")
   (let* ((buffer-name (concat "tail " file))
@@ -109,11 +114,7 @@ clearing and filtering
                    (match-string 2 file)
                  (expand-file-name file))))
     (make-comint buffer-name "tail" nil "-F" file)
-    (if current-window
-        (switch-to-buffer (concat "*" buffer-name "*"))
-        (pop-to-buffer (concat "*" buffer-name "*"))
-    )
-  )
+    (funcall itail-open-fn (concat "*" buffer-name "*")))
   (ansi-color-for-comint-mode-on)
   (add-hook 'comint-preoutput-filter-functions 'itail-output-filter)
   (setq itail-file file)
@@ -248,4 +249,3 @@ output through the filter pipeline."
               (concat " | " (itail-filter-pipeline)))))))
 
 (provide 'itail)
-;;; itail.el ends here
